@@ -1,0 +1,42 @@
+# Starter pipeline for Windows
+# This pipeline will build, test, and deploy your MVC application on Windows
+
+trigger:
+  - main  # Adjust this to your desired branch
+
+pool:
+  vmImage: 'windows-latest'  # Use the latest Windows image for the build environment
+
+steps:
+# Step 1: Checkout your code
+- task: Checkout@1
+
+# Step 2: Install .NET SDK (for .NET Core)
+- script: |
+    Invoke-WebRequest -Uri https://aka.ms/install-dotnet.ps1 -OutFile install-dotnet.ps1
+    .\install-dotnet.ps1
+  displayName: 'Install .NET SDK'
+
+# Step 3: Restore NuGet packages
+- script: |
+    dotnet restore
+  displayName: 'Restore NuGet packages'
+
+# Step 4: Build the project
+- script: |
+    dotnet build
+  displayName: 'Build the project'
+
+# Step 5: Run unit tests (if applicable)
+- script: |
+    dotnet test
+  displayName: 'Run tests'
+
+# Step 6: Publish the project
+- script: |
+    dotnet publish --configuration Release --output $(Build.ArtifactStagingDirectory)
+  displayName: 'Publish the project'
+
+# Step 7: Optional: Add a deployment step if needed
+# Example: Deploy to Azure Web App, FTP, or other service
+
