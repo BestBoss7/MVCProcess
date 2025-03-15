@@ -1,0 +1,36 @@
+trigger:
+- main  # Trigger the pipeline for commits to the main branch
+
+pool:
+  name: Jayant  
+
+variables:
+  solution: '**/*.sln'  # Automatically find the solution file(s)
+  buildPlatform: 'Any CPU'  # Build platform (e.g., Any CPU, x64, x86)
+  buildConfiguration: 'Release'  # Set the build configuration (Debug/Release)
+
+steps:
+- task: NuGetToolInstaller@1  # Install NuGet tool
+
+- task: NuGetCommand@2
+  inputs:
+    restoreSolution: '$(solution)'  # Restore dependencies for the solution
+
+- task: VSBuild@1
+  inputs:
+    solution: '$(solution)'  # Build the solution
+    msbuildArgs: '/p:DeployOnBuild=true /p:WebPublishMethod=Package /p:PackageAsSingleFile=true /p:SkipInvalidConfigurations=true /p:DesktopBuildPackageLocation="$(build.artifactStagingDirectory)\WebApp.zip" /p:DeployIisAppPath="Default Web Site"'
+    platform: '$(buildPlatform)'  # Set platform (e.g., x64, x86, Any CPU)
+    configuration: '$(buildConfiguration)'  # Set configuration (Debug/Release)
+
+- task: VSTest@2  # Run tests
+  inputs:
+    platform: '$(buildPlatform)'
+    configuration: '$(buildConfiguration)'
+
+# Optional: Publish build artifacts
+- task: PublishBuildArtifacts@1
+  inputs:
+    PathtoPublish: '$(build.artifactStagingDirectory)'  # Path to the build artifacts
+    ArtifactName: 'drop'  # Name of the artifact
+    publishLocation: 'Container'  # Publish location
